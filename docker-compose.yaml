@@ -1,0 +1,22 @@
+services:
+  editai-dev:
+    build:
+      context: .
+      dockerfile: .docker/wails/Dockerfile
+    container_name: editai-dev
+    volumes:
+      - .:/app
+      - go-cache:/go
+      - node-modules:/app/frontend/node_modules
+    ports:
+      - "3000:3000"
+    environment:
+      - GOOS=linux
+      - GOARCH=amd64
+      - CGO_ENABLED=1
+    tty: true
+    stdin_open: true
+
+volumes:
+  go-cache:
+  node-modules:
