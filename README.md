@@ -69,11 +69,74 @@ You can check the full roadmap [here](./ROADMAP.md).
 
 ## Development
 
-More details about installation and development setup coming soon.
+### Prerequisites
+
+- Go 1.22+
+- Node.js 22+
+- Docker (optional, for containerized builds)
+- Wails v2.9.2+
+- UPX (optional, for production builds)
+- NSIS (optional, for Windows builds)
+
+### Building from Source
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/yourusername/EditAI.git
+   cd EditAI
+   ```
+
+2. **Local Build**
+   ```bash
+   # Install dependencies
+   make deps
+
+   # Development mode with hot reload
+   make dev
+
+   # Development build
+   make build-dev
+
+   # Production build
+   make build
+   ```
+
+3. **Docker Build** (⚠️ Coming Soon)
+   > Note: Docker builds are currently being reworked and are temporarily broken. Please use local builds for now.
+   ```bash
+   # Docker build (currently unavailable)
+   docker-compose up
+   ```
+
+### Editor Configuration
+
+Create a `.edit4i/config.yaml` file in your home directory to configure the editor.
+
+```yaml
+editor:
+  theme: "vs-dark"  # or "vs-light", "hc-black"
+  fontSize: 14
+  tabSize: 2
+  wordWrap: true
+  lineNumbers: true
+  minimap: true
+  vim:
+    enabled: true
+    defaultMode: "normal"  # "normal", "insert", "visual"
+
+```
+
+### Build Targets
+
+- Linux: `make build-linux`
+- macOS: `make build-darwin`
+- Windows: `make build-windows`
+
+For development and debugging, use `make build-dev` which enables hot reload.
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.]
+Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## Screenshots
 

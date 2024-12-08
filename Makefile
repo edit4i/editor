@@ -10,28 +10,25 @@ GO_ENV := GOFLAGS="-buildvcs=false"
 configure:
 	docker compose up -d
 
+dev:
+	wails dev
+
 # Build development version
 build-dev:
-	docker exec -e $(GO_ENV) editai-dev sh -c "wails build"
+	$(GO_ENV) wails build
 
 # Build for different platforms
 build-windows:
-	docker exec -e $(GO_ENV) editai-dev sh -c "wails build -platform windows/amd64 -nsis ${BUILD_OPTIONS}"
+	$(GO_ENV) wails build -platform windows/amd64 -nsis ${BUILD_OPTIONS}
 
 build-mac:
-	docker exec -e $(GO_ENV) editai-dev sh -c "wails build -platform darwin/universal ${BUILD_OPTIONS}"
+	$(GO_ENV) wails build -platform darwin/universal ${BUILD_OPTIONS}
 
 build-linux:
-	docker exec -e $(GO_ENV) editai-dev sh -c "wails build -platform linux/amd64 ${BUILD_OPTIONS} && \
+	$(GO_ENV) wails build -platform linux/amd64 ${BUILD_OPTIONS} && \
 		cd build/debian && \
 		nfpm pkg --packager deb --target ../bin/ && \
-		nfpm pkg --packager rpm --target ../bin/"
-
-build-linux-static:
-	docker exec -e $(GO_ENV) editai-dev sh -c "CC=/usr/bin/x86_64-alpine-linux-musl-gcc wails build -tags ${BUILD_TAGS} -platform linux/amd64 ${BUILD_OPTIONS} && \
-		cd build/debian && \
-		nfpm pkg --packager deb --target ../bin/ && \
-		nfpm pkg --packager rpm --target ../bin/"
+		nfpm pkg --packager rpm --target ../bin/
 
 # Clean up
 clean:
