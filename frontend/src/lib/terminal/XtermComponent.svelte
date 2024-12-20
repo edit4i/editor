@@ -130,14 +130,7 @@
             fontSize: 14,
             fontFamily: 'monospace',
             // Prevent terminal from handling our keyboard shortcuts
-            allowTransparency: true,
-            // customKeyEventHandler: (event: KeyboardEvent) => {
-            //     // Don't handle Alt+J
-            //     if (event.altKey && event.key.toLowerCase() === 'j') {
-            //         return false;
-            //     }
-            //     return true;
-            // }
+            allowTransparency: true
         });
 
         terminal.attachCustomKeyEventHandler((event: KeyboardEvent) => {

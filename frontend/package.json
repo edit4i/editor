@@ -21,6 +21,9 @@
     "vite": "^4.4.0"
   },
   "dependencies": {
+    "@xterm/addon-fit": "^0.10.0",
+    "@xterm/addon-search": "^0.15.0",
+    "@xterm/addon-webgl": "^0.18.0",
     "@xterm/xterm": "^5.5.0",
     "lucide-svelte": "^0.294.0",
     "monaco-editor": "^0.52.0",

@@ -45,7 +45,7 @@ func (s *TerminalService) CreateTerminal(id string, shell string) error {
 	}
 
 	// Create new terminal
-	term, err := terminal.NewTerminal(terminal.TerminalOptions{
+	term, err := terminal.NewTerminal(id, terminal.TerminalOptions{
 		Shell: shell,
 		Cols:  80,
 		Rows:  24,
@@ -83,7 +83,7 @@ func (s *TerminalService) DestroyTerminal(id string) error {
 		return fmt.Errorf("terminal with id %s not found", id)
 	}
 
-	term.Stop()
+	term.Stop(id)
 	delete(s.terminals, id)
 
 	// Notify that terminal has exited

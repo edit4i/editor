@@ -11,6 +11,37 @@ import (
 	"github.com/creack/pty"
 )
 
+// TerminalManager manages all terminal instances
+type TerminalManager struct {
+	terminals sync.Map // map[string]*Terminal
+}
+
+var (
+	manager = &TerminalManager{}
+)
+
+// GetTerminal gets a terminal by ID
+func GetTerminal(id string) *Terminal {
+	if t, ok := manager.terminals.Load(id); ok {
+		return t.(*Terminal)
+	}
+	return nil
+}
+
+// NewTerminal creates a new terminal instance
+func NewTerminal(id string, opts TerminalOptions, onEvent func(*Event)) (*Terminal, error) {
+	t := &Terminal{
+		done:    make(chan struct{}),
+		onEvent: onEvent,
+		shell:   opts.Shell,
+	}
+
+	// Store the terminal
+	manager.terminals.Store(id, t)
+
+	return t, nil
+}
+
 // Terminal represents a terminal instance
 type Terminal struct {
 	done    chan struct{}
@@ -19,17 +50,6 @@ type Terminal struct {
 	shell   string
 	cmd     *exec.Cmd
 	pty     *os.File
-}
-
-// NewTerminal creates a new terminal instance
-func NewTerminal(opts TerminalOptions, onEvent func(*Event)) (*Terminal, error) {
-	t := &Terminal{
-		done:    make(chan struct{}),
-		onEvent: onEvent,
-		shell:   opts.Shell,
-	}
-
-	return t, nil
 }
 
 // Start starts the terminal
@@ -79,8 +99,8 @@ func (t *Terminal) Start() error {
 	return nil
 }
 
-// Stop stops the terminal
-func (t *Terminal) Stop() {
+// Stop stops the terminal and removes it from the manager
+func (t *Terminal) Stop(id string) {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 
@@ -93,6 +113,9 @@ func (t *Terminal) Stop() {
 	}
 
 	close(t.done)
+
+	// Remove from manager
+	manager.terminals.Delete(id)
 }
 
 // Write writes data directly to the terminal
