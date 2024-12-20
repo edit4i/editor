@@ -339,124 +339,134 @@ const defaultKeybindings: KeyBindingConfig = {
         },
         action: () => {}
     },
+    'terminal.returnToPrevious': {
+        defaultBinding: {
+            key: 'j',
+            modifiers: ['alt'],
+            description: 'Return to Previous Pane',
+            category: 'Terminal',
+            context: ['bottomPane']
+        },
+        action: () => {}
+    },
 };
 
-// Store for custom keybindings
-const customKeybindings = writable<Record<string, Partial<KeyBinding>>>({});
+    // Store for custom keybindings
+    const customKeybindings = writable<Record<string, Partial<KeyBinding>>>({});
 
-// Store for current keyboard contexts (now supports multiple)
-export const activeContexts = writable<Set<KeyboardContext>>(new Set(['global']));
+    // Store for current keyboard contexts (now supports multiple)
+    export const activeContexts = writable<Set<KeyboardContext>>(new Set(['global']));
 
-// Function to add a keyboard context
-export function addKeyboardContext(context: KeyboardContext) {
-    activeContexts.update(contexts => {
-        // Create a new Set to ensure reactivity
-        return new Set([...Array.from(contexts), context]);
-    });
-}
+    // Function to add a keyboard context
+    export function addKeyboardContext(context: KeyboardContext) {
+        activeContexts.update(contexts => {
+            // Create a new Set to ensure reactivity
+            return new Set([...Array.from(contexts), context]);
+        });
+    }
 
-// Function to remove a keyboard context
-export function removeKeyboardContext(context: KeyboardContext) {
-    if (context === 'global') return; // Never remove global context
-    activeContexts.update(contexts => {
-        // Create a new Set to ensure reactivity
-        const newContexts = new Set(Array.from(contexts));
-        newContexts.delete(context);
-        return newContexts;
-    });
-}
+    // Function to remove a keyboard context
+    export function removeKeyboardContext(context: KeyboardContext) {
+        if (context === 'global') return; // Never remove global context
+        activeContexts.update(contexts => {
+            // Create a new Set to ensure reactivity
+            const newContexts = new Set(Array.from(contexts));
+            newContexts.delete(context);
+            return newContexts;
+        });
+    }
 
-// Function to check if a context is active
-export function hasKeyboardContext(context: KeyboardContext): boolean {
-    return get(activeContexts).has(context);
-}
+    // Function to check if a context is active
+    export function hasKeyboardContext(context: KeyboardContext): boolean {
+        return get(activeContexts).has(context);
+    }
 
-// Derived store that combines default and custom keybindings
-export const keyBindings = derived(
-    [customKeybindings, activeContexts],
-    ([$customKeybindings, $activeContexts]) => {
-        const bindings: Record<string, KeyBinding> = {};
-        // Use Array.from to ensure proper Set iteration
-        const activeContextArray = Array.from($activeContexts || new Set(['global']));
+    // Derived store that combines default and custom keybindings
+    export const keyBindings = derived(
+        [customKeybindings, activeContexts],
+        ([$customKeybindings, $activeContexts]) => {
+            const bindings: Record<string, KeyBinding> = {};
+            // Use Array.from to ensure proper Set iteration
+            const activeContextArray = Array.from($activeContexts || new Set(['global']));
 
-        for (const [command, config] of Object.entries(defaultKeybindings)) {
-            // Check if any of the binding's contexts are currently active
-            if (config.defaultBinding.context.some(ctx => activeContextArray.includes(ctx))) {
-                bindings[command] = {
-                    ...config.defaultBinding,
-                    action: config.action,
-                    ...($customKeybindings[command] || {})
-                };
+            for (const [command, config] of Object.entries(defaultKeybindings)) {
+                // Check if any of the binding's contexts are currently active
+                if (config.defaultBinding.context.some(ctx => activeContextArray.includes(ctx))) {
+                    bindings[command] = {
+                        ...config.defaultBinding,
+                        action: config.action,
+                        ...($customKeybindings[command] || {})
+                    };
+                }
+            }
+
+            return bindings;
+        }
+    );
+
+    // Keep setKeyboardContext for backwards compatibility, but mark as deprecated
+    /** @deprecated Use addKeyboardContext and removeKeyboardContext instead */
+    export function setKeyboardContext(context: KeyboardContext) {
+        // Create a new Set with just the global context and the new context
+        activeContexts.set(new Set(['global', context]));
+    }
+
+    // Function to register a command's action
+    export function registerCommand(command: string, action: () => void) {
+        if (defaultKeybindings[command]) {
+            defaultKeybindings[command].action = action;
+            // Trigger store update
+            customKeybindings.update(k => ({ ...k }));
+        }
+    }
+
+    // Function to update custom keybinding
+    export function updateKeybinding(command: string, binding: Partial<KeyBinding>) {
+        customKeybindings.update(bindings => ({
+            ...bindings,
+            [command]: binding
+        }));
+    }
+
+    // Helper function to format keybinding for display
+    export function formatKeybinding(binding: KeyBinding): string {
+        const modifiers = binding.modifiers || [];
+        const parts = [
+            ...modifiers.map(mod => mod.charAt(0).toUpperCase() + mod.slice(1)),
+            binding.key.toUpperCase()
+        ];
+        return parts.join('+');
+    }
+
+    // Function to check if a keyboard event matches a keybinding
+    export function matchesKeybinding(event: KeyboardEvent, binding: KeyBinding): boolean {
+        const modifiers = binding.modifiers || [];
+
+        const modifierMatch =
+            modifiers.includes('ctrl') === event.ctrlKey &&
+            modifiers.includes('alt') === event.altKey &&
+            modifiers.includes('shift') === event.shiftKey &&
+            modifiers.includes('meta') === event.metaKey;
+
+        return modifierMatch && event.key.toLowerCase() === binding.key.toLowerCase();
+    }
+
+    // Function to handle global keyboard events
+    export function handleKeyboardEvent(event: KeyboardEvent) {
+      // Ignore enter when editor is focused
+      if (event.target instanceof HTMLElement &&
+          event.target.closest('.monaco-editor') &&
+          event.key === 'Enter') {
+          return;
+      }
+
+        const currentBindings = get(keyBindings);
+
+        for (const [command, binding] of Object.entries(currentBindings)) {
+            if (matchesKeybinding(event, binding)) {
+                event.preventDefault();
+                binding.action();
+                return;
             }
         }
-
-        return bindings;
     }
-);
-
-// Keep setKeyboardContext for backwards compatibility, but mark as deprecated
-/** @deprecated Use addKeyboardContext and removeKeyboardContext instead */
-export function setKeyboardContext(context: KeyboardContext) {
-    // Create a new Set with just the global context and the new context
-    activeContexts.set(new Set(['global', context]));
-}
-
-// Function to register a command's action
-export function registerCommand(command: string, action: () => void) {
-    if (defaultKeybindings[command]) {
-        defaultKeybindings[command].action = action;
-        // Trigger store update
-        customKeybindings.update(k => ({ ...k }));
-    }
-}
-
-// Function to update custom keybinding
-export function updateKeybinding(command: string, binding: Partial<KeyBinding>) {
-    customKeybindings.update(bindings => ({
-        ...bindings,
-        [command]: binding
-    }));
-}
-
-// Helper function to format keybinding for display
-export function formatKeybinding(binding: KeyBinding): string {
-    const modifiers = binding.modifiers || [];
-    const parts = [
-        ...modifiers.map(mod => mod.charAt(0).toUpperCase() + mod.slice(1)),
-        binding.key.toUpperCase()
-    ];
-    return parts.join('+');
-}
-
-// Function to check if a keyboard event matches a keybinding
-export function matchesKeybinding(event: KeyboardEvent, binding: KeyBinding): boolean {
-    const modifiers = binding.modifiers || [];
-
-    const modifierMatch =
-        modifiers.includes('ctrl') === event.ctrlKey &&
-        modifiers.includes('alt') === event.altKey &&
-        modifiers.includes('shift') === event.shiftKey &&
-        modifiers.includes('meta') === event.metaKey;
-
-    return modifierMatch && event.key.toLowerCase() === binding.key.toLowerCase();
-}
-
-// Function to handle global keyboard events
-export function handleKeyboardEvent(event: KeyboardEvent) {
-  // Ignore enter when editor is focused
-  if (event.target instanceof HTMLElement &&
-      event.target.closest('.monaco-editor') &&
-      event.key === 'Enter') {
-      return;
-  }
-
-    const currentBindings = get(keyBindings);
-
-    for (const [command, binding] of Object.entries(currentBindings)) {
-        if (matchesKeybinding(event, binding)) {
-            event.preventDefault();
-            binding.action();
-            return;
-        }
-    }
-}

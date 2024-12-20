@@ -16,6 +16,7 @@
     import Modal from "@/lib/components/Modal.svelte";
     import BottomPane from "@/lib/editor/panes/BottomPane.svelte";
     import { bottomPaneStore } from '@/stores/bottomPaneStore';
+    import { focusStore } from '@/stores/focusStore';
 
     // Convert open files to tabs
     $: tabs = Array.from($fileStore.openFiles.entries()).map(([path, file]) => ({
@@ -137,12 +138,33 @@
 
         // Register terminal shortcut
         registerCommand('terminal.open', () => {
-            // Ensure bottom pane is not collapsed
+            // Save current focus
+            focusStore.focus('editor', $fileStore.activeFilePath || 'editor');
+            
+            // Show terminal
             bottomPaneStore.update(state => ({
                 ...state,
                 collapsed: false,
                 activeSection: 'terminal'
             }));
+        });
+
+        // Register return to previous shortcut
+        registerCommand('terminal.returnToPrevious', () => {
+            const previous = get(focusStore).previousContext;
+            if (previous && previous.component === 'editor') {
+                // Collapse terminal
+                bottomPaneStore.update(state => ({
+                    ...state,
+                    collapsed: true
+                }));
+
+                // Focus editor and file
+                focusStore.restorePrevious();
+                if (previous.id !== 'editor') {
+                    fileStore.setActiveFile(previous.id);
+                }
+            }
         });
 
         registerCommand('file.showFileFinder', () => showFileFinder = true);

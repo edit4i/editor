@@ -104,6 +104,12 @@
         }, 100);
     }
 
+    // Watch for focus changes
+    $: if (editor && $focusStore.activeContext?.component === 'editor') {
+        // Focus editor when it becomes active
+        editor.focus();
+    }
+
     // Watch for file changes
     $: if ($fileStore.activeFilePath) {
         handleFileChange($fileStore.activeFilePath);
