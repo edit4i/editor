@@ -4,6 +4,7 @@
     import '@xterm/xterm/css/xterm.css';
 
     export let height: number;
+    export let id: string;
 
     let terminalElement: HTMLElement;
     let terminal: Terminal;
@@ -60,7 +61,7 @@
         });
 
         terminal.open(terminalElement);
-        terminal.write('Welcome to Edit4i Terminal\r\n$ ');
+        terminal.write(`Welcome to Terminal ${id}\r\n$ `);
         
         // Initial size update
         updateTerminalSize();
