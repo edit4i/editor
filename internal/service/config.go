@@ -10,19 +10,31 @@ import (
 // EditorConfig represents the editor configuration
 type EditorConfig struct {
 	Editor struct {
-		Theme       string `json:"theme" mapstructure:"theme"`
-		FontSize    int    `json:"fontSize" mapstructure:"fontSize"`
-		TabSize     int    `json:"tabSize" mapstructure:"tabSize"`
-		WordWrap    bool   `json:"wordWrap" mapstructure:"wordWrap"`
-		LineNumbers bool   `json:"lineNumbers" mapstructure:"lineNumbers"`
+		Theme         string `json:"theme" mapstructure:"theme"`
+		FontSize      int    `json:"fontSize" mapstructure:"fontSize"`
+		TabSize       int    `json:"tabSize" mapstructure:"tabSize"`
+		WordWrap      bool   `json:"wordWrap" mapstructure:"wordWrap"`
+		LineNumbers   bool   `json:"lineNumbers" mapstructure:"lineNumbers"`
 		RelativeLines bool   `json:"relativeLines" mapstructure:"relativeLines"`
-		Minimap     bool   `json:"minimap" mapstructure:"minimap"`
-		StickyScroll bool   `json:"stickyScroll" mapstructure:"stickyScroll"`
-		Vim         struct {
+		Minimap       bool   `json:"minimap" mapstructure:"minimap"`
+		StickyScroll  bool   `json:"stickyScroll" mapstructure:"stickyScroll"`
+		Vim           struct {
 			Enabled     bool   `json:"enabled" mapstructure:"enabled"`
 			DefaultMode string `json:"defaultMode" mapstructure:"defaultMode"`
 		} `json:"vim" mapstructure:"vim"`
 	} `json:"editor" mapstructure:"editor"`
+	Terminal struct {
+		DefaultShell string `json:"defaultShell" mapstructure:"defaultShell"`
+		FontSize     int    `json:"fontSize" mapstructure:"fontSize"`
+		FontFamily   string `json:"fontFamily" mapstructure:"fontFamily"`
+		Theme        struct {
+			Background          string `json:"background" mapstructure:"background"`
+			Foreground          string `json:"foreground" mapstructure:"foreground"`
+			Cursor              string `json:"cursor" mapstructure:"cursor"`
+			SelectionBackground string `json:"selectionBackground" mapstructure:"selectionBackground"`
+			SelectionForeground string `json:"selectionForeground" mapstructure:"selectionForeground"`
+		} `json:"theme" mapstructure:"theme"`
+	} `json:"terminal" mapstructure:"terminal"`
 	Keyboard struct {
 		CustomBindings map[string]KeyBinding `json:"customBindings" mapstructure:"customBindings"`
 	} `json:"keyboard" mapstructure:"keyboard"`
@@ -104,7 +116,18 @@ func createDefaultConfig(path string) error {
   stickyScroll: false
   vim:
     enabled: false
-    mode: normal
+    defaultMode: normal
+
+terminal:
+  defaultShell: ""  # Empty means use system default shell
+  fontSize: 14
+  fontFamily: "monospace"
+  theme:
+    background: "#181818"
+    foreground: "#c5c8c6"
+    cursor: "#528bff"
+    selectionBackground: "#3e4451"
+    selectionForeground: "#d1d5db"
 
 keyboard:
   customBindings: {}`

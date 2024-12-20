@@ -48,6 +48,8 @@ export namespace service {
 	export class EditorConfig {
 	    // Go type: struct { Theme string "json:\"theme\" mapstructure:\"theme\""; FontSize int "json:\"fontSize\" mapstructure:\"fontSize\""; TabSize int "json:\"tabSize\" mapstructure:\"tabSize\""; WordWrap bool "json:\"wordWrap\" mapstructure:\"wordWrap\""; LineNumbers bool "json:\"lineNumbers\" mapstructure:\"lineNumbers\""; RelativeLines bool "json:\"relativeLines\" mapstructure:\"relativeLines\""; Minimap bool "json:\"minimap\" mapstructure:\"minimap\""; StickyScroll bool "json:\"stickyScroll\" mapstructure:\"stickyScroll\""; Vim struct { Enabled bool "json:\"enabled\" mapstructure:\"enabled\""; DefaultMode string "json:\"defaultMode\" mapstructure:\"defaultMode\"" } "json:\"vim\" mapstructure:\"vim\"" }
 	    editor: any;
+	    // Go type: struct { DefaultShell string "json:\"defaultShell\" mapstructure:\"defaultShell\""; FontSize int "json:\"fontSize\" mapstructure:\"fontSize\""; FontFamily string "json:\"fontFamily\" mapstructure:\"fontFamily\""; Theme struct { Background string "json:\"background\" mapstructure:\"background\""; Foreground string "json:\"foreground\" mapstructure:\"foreground\""; Cursor string "json:\"cursor\" mapstructure:\"cursor\""; SelectionBackground string "json:\"selectionBackground\" mapstructure:\"selectionBackground\""; SelectionForeground string "json:\"selectionForeground\" mapstructure:\"selectionForeground\"" } "json:\"theme\" mapstructure:\"theme\"" }
+	    terminal: any;
 	    keyboard: struct { CustomBindings map[string]service.;
 	
 	    static createFrom(source: any = {}) {
@@ -57,6 +59,7 @@ export namespace service {
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.editor = this.convertValues(source["editor"], Object);
+	        this.terminal = this.convertValues(source["terminal"], Object);
 	        this.keyboard = this.convertValues(source["keyboard"], Object);
 	    }
 	

@@ -1,10 +1,11 @@
 <script lang="ts">
     import { onMount, onDestroy } from 'svelte';
-    import { Terminal } from '@xterm/xterm';
+    import { Terminal, type ITerminalOptions, type ITheme } from '@xterm/xterm';
     import '@xterm/xterm/css/xterm.css';
     import { CreateTerminal, DestroyTerminal, HandleInput, ResizeTerminal } from '@/lib/wailsjs/go/main/App';
     import { EventsOn, EventsOff } from '@/lib/wailsjs/runtime/runtime';
     import { projectStore } from '@/stores/project';
+    import { editorConfigStore } from '@/stores/editorConfigStore';
     import { get } from 'svelte/store';
 
     export let height: number;
@@ -20,17 +21,16 @@
 
     console.log('[Terminal] Initializing with id:', id, 'shell:', shell);
 
-    const terminalTheme = {
-        background: '#181818',
-        foreground: '#c5c8c6',
-        cursor: '#528bff',
-        selectionBackground: '#3e4451',
-        selectionForeground: '#d1d5db',
-        black: '#1e1e1e',
-        red: '#e06c75',
-        green: '#98c379',
-        yellow: '#e5c07b',
-        blue: '#61afef',
+    // Get terminal config
+    const config = get(editorConfigStore);
+    const terminalConfig = config.terminal;
+
+    const terminalTheme: ITheme = {
+        background: terminalConfig.theme.background,
+        foreground: terminalConfig.theme.foreground,
+        cursor: terminalConfig.theme.cursor,
+        selectionBackground: terminalConfig.theme.selectionBackground,
+        selectionForeground: terminalConfig.theme.selectionForeground,
     };
 
     // Function to update terminal size with debouncing
@@ -122,6 +122,8 @@
         if (isInitialized || isDestroyed) return;
         
         console.log('[Terminal] Mounting component');
+
+        console.log('[Terminal] config:', config);
         
         // Create xterm.js instance
         terminal = new Terminal({
@@ -129,8 +131,8 @@
             cursorBlink: true,
             allowProposedApi: true,
             scrollback: 10000,
-            fontSize: 14,
-            fontFamily: 'monospace',
+            fontSize: terminalConfig.fontSize,
+            fontFamily: terminalConfig.fontFamily,
             // Prevent terminal from handling our keyboard shortcuts
             allowTransparency: true
         });

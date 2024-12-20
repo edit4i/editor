@@ -1,5 +1,6 @@
 import { writable, get } from 'svelte/store';
 import { projectStore } from './project';
+import { editorConfigStore } from '@/stores/editorConfigStore';
 import { GetAvailableShells } from '@/lib/wailsjs/go/main/App';
 
 export interface TerminalTab {
@@ -20,18 +21,18 @@ GetAvailableShells().then(shells => {
 });
 
 function createTerminalStore() {
-    const { subscribe, update, set } = writable<TerminalTab[]>([
-        { id: '1', name: 'Terminal 1', active: true, shell: '/bin/bash' }
-    ]);
+    const { subscribe, update, set } = writable<TerminalTab[]>([]);
 
     return {
         subscribe,
         addTab: (shell: string = '') => {
             let newId: string = '';
             update(tabs => {
-                // Get the first available shell if none specified
+                // Get default shell from config or use first available shell
+                const config = get(editorConfigStore);
                 const currentShells = get(availableShells);
-                const defaultShell = shell || currentShells[0] || '/bin/bash';
+                const defaultShell = config.terminal.DefaultShell || currentShells[0] || '/bin/sh';
+                const shellToUse = shell || defaultShell;
                 
                 // Deactivate all tabs
                 const updatedTabs = tabs.map(tab => ({ ...tab, active: false }));
@@ -41,7 +42,7 @@ function createTerminalStore() {
                     id: newId, 
                     name: `Terminal ${tabs.length + 1}`, 
                     active: true,
-                    shell: defaultShell
+                    shell: shellToUse
                 }];
             });
             return newId;
