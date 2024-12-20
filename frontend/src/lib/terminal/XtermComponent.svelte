@@ -157,6 +157,7 @@
             }
 
             try {
+                // @ts-ignore
                 HandleInput(id, btoa(data));
             } catch (error) {
                 console.error('[Terminal] Error handling input:', error);
@@ -164,7 +165,7 @@
         });
 
         // Get current project path
-        const projectPath = get(projectStore).currentProject?.path || '';
+        const projectPath = get(projectStore).currentProject?.Path || '';
 
         // Create backend terminal
         console.log('[Terminal] Creating backend terminal');

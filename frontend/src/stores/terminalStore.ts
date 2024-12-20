@@ -1,5 +1,6 @@
 import { writable, get } from 'svelte/store';
 import { projectStore } from './project';
+import { GetAvailableShells } from '@/lib/wailsjs/go/main/App';
 
 export interface TerminalTab {
     id: string;
@@ -8,23 +9,30 @@ export interface TerminalTab {
     shell: string;
 }
 
-export const AVAILABLE_SHELLS = [
-    'bash',
-    'zsh',
-    'fish',
-    'sh'
-] as const;
+// Initialize with a default shell that will be updated
+export const availableShells = writable<string[]>(['/bin/bash']);
+
+// Load available shells on startup
+GetAvailableShells().then(shells => {
+    availableShells.set(shells);
+}).catch(err => {
+    console.error('Failed to get available shells:', err);
+});
 
 function createTerminalStore() {
     const { subscribe, update, set } = writable<TerminalTab[]>([
-        { id: '1', name: 'Terminal 1', active: true, shell: 'bash' }
+        { id: '1', name: 'Terminal 1', active: true, shell: '/bin/bash' }
     ]);
 
     return {
         subscribe,
-        addTab: (shell: string = 'bash') => {
+        addTab: (shell: string = '') => {
             let newId: string = '';
             update(tabs => {
+                // Get the first available shell if none specified
+                const currentShells = get(availableShells);
+                const defaultShell = shell || currentShells[0] || '/bin/bash';
+                
                 // Deactivate all tabs
                 const updatedTabs = tabs.map(tab => ({ ...tab, active: false }));
                 // Add new tab
@@ -33,7 +41,7 @@ function createTerminalStore() {
                     id: newId, 
                     name: `Terminal ${tabs.length + 1}`, 
                     active: true,
-                    shell
+                    shell: defaultShell
                 }];
             });
             return newId;

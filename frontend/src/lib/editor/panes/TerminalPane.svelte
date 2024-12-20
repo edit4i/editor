@@ -1,15 +1,16 @@
 <script lang="ts">
     import XtermComponent from '@/lib/terminal/XtermComponent.svelte';
-    import { terminalStore, AVAILABLE_SHELLS } from '@/stores/terminalStore';
+    import { terminalStore, availableShells } from '@/stores/terminalStore';
     import { bottomPaneStore } from '@/stores/bottomPaneStore';
     import { Plus, X, ChevronLeft, ChevronRight } from 'lucide-svelte';
     import Button from '@/lib/components/Button.svelte';
     import Select from '@/lib/components/Select.svelte';
+    import { get } from 'svelte/store';
 
     // Get the height from BottomPane
     export let height: number;
 
-    let selectedShell = AVAILABLE_SHELLS[0];
+    let selectedShell = get(availableShells)[0];
     let tabsContainer: HTMLElement;
     let terminals: Record<string, XtermComponent> = {};
 
@@ -124,7 +125,7 @@
             <div class="h-[24px] border-l border-gray-700 mx-1" />
             <Select
                 bind:value={selectedShell}
-                options={AVAILABLE_SHELLS}
+                options={$availableShells}
                 variant="compact"
                 class="w-36"
             />

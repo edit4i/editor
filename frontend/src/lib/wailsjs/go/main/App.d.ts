@@ -15,6 +15,8 @@ export function DeleteFile(arg1:string):Promise<void>;
 
 export function DestroyTerminal(arg1:string):Promise<void>;
 
+export function GetAvailableShells():Promise<Array<string>>;
+
 export function GetEditorConfig():Promise<service.EditorConfig>;
 
 export function GetFileContent(arg1:string):Promise<string>;

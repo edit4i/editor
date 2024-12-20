@@ -26,6 +26,10 @@ export function DestroyTerminal(arg1) {
   return window['go']['main']['App']['DestroyTerminal'](arg1);
 }
 
+export function GetAvailableShells() {
+  return window['go']['main']['App']['GetAvailableShells']();
+}
+
 export function GetEditorConfig() {
   return window['go']['main']['App']['GetEditorConfig']();
 }

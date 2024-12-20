@@ -167,3 +167,8 @@ func (a *App) ResizeTerminal(id string, cols int, rows int) error {
 func (a *App) HandleInput(id string, data []byte) error {
 	return a.terminalService.HandleInput(id, data)
 }
+
+// GetAvailableShells returns a list of available shells, with the default shell as the first item
+func (a *App) GetAvailableShells() ([]string, error) {
+    return a.terminalService.GetAvailableShells()
+}
