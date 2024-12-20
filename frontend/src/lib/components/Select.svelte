@@ -1,4 +1,6 @@
 <script lang="ts">
+    import { twMerge } from "tailwind-merge";
+
     export let value: string;
     export let options: string[];
     export let disabled: boolean = false;
@@ -26,10 +28,7 @@
         compact: 'py-0.5 px-2'
     };
 
-    $: classes = `
-        ${baseClasses}
-        ${variantClasses[variant]}
-    `;
+    $: classes = twMerge(baseClasses, variantClasses[variant], $$props.class || '');
 </script>
 
 <div class="relative">

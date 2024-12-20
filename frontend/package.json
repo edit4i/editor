@@ -25,6 +25,7 @@
     "lucide-svelte": "^0.294.0",
     "monaco-editor": "^0.52.0",
     "monaco-vim": "^0.4.1",
-    "svelte-spa-router": "^4.0.1"
+    "svelte-spa-router": "^4.0.1",
+    "tailwind-merge": "^2.5.5"
   }
 }

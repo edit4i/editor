@@ -4,22 +4,35 @@ export interface TerminalTab {
     id: string;
     name: string;
     active: boolean;
+    shell: string;
 }
+
+export const AVAILABLE_SHELLS = [
+    'bash',
+    'zsh',
+    'fish',
+    'sh'
+] as const;
 
 function createTerminalStore() {
     const { subscribe, update } = writable<TerminalTab[]>([
-        { id: '1', name: 'Terminal 1', active: true }
+        { id: '1', name: 'Terminal 1', active: true, shell: 'bash' }
     ]);
 
     return {
         subscribe,
-        addTab: () => {
+        addTab: (shell: string = 'bash') => {
             update(tabs => {
                 // Deactivate all tabs
                 const updatedTabs = tabs.map(tab => ({ ...tab, active: false }));
                 // Add new tab
                 const newId = (tabs.length + 1).toString();
-                return [...updatedTabs, { id: newId, name: `Terminal ${newId}`, active: true }];
+                return [...updatedTabs, { 
+                    id: newId, 
+                    name: `Terminal ${newId}`, 
+                    active: true,
+                    shell
+                }];
             });
         },
         removeTab: (id: string) => {

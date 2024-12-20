@@ -5,6 +5,7 @@
 
     export let height: number;
     export let id: string;
+    export let shell: string;
 
     let terminalElement: HTMLElement;
     let terminal: Terminal;
@@ -61,7 +62,7 @@
         });
 
         terminal.open(terminalElement);
-        terminal.write(`Welcome to Terminal ${id}\r\n$ `);
+        terminal.write(`Welcome to Terminal ${id} (${shell})\r\n$ `);
         
         // Initial size update
         updateTerminalSize();
