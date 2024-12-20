@@ -15,6 +15,7 @@
     import FileFinder from "@/lib/components/FileFinder.svelte";
     import Modal from "@/lib/components/Modal.svelte";
     import BottomPane from "@/lib/editor/panes/BottomPane.svelte";
+    import { bottomPaneStore } from '@/stores/bottomPaneStore';
 
     // Convert open files to tabs
     $: tabs = Array.from($fileStore.openFiles.entries()).map(([path, file]) => ({
@@ -38,11 +39,7 @@
     let showFileFinder = false;
 
     // Bottom pane state
-    let bottomPaneState: any = {
-        collapsed: false,
-        activeSection: 'terminal',
-        isAllCollapsed: false
-    };
+    let bottomPaneState = $bottomPaneStore;
 
     // Sidebar widths and heights
     let leftSidebarWidth = 300;
@@ -130,13 +127,24 @@
         }
     }
 
-    onMount(async () => {
+    onMount(() => {
         const state = get(projectStore);
         if (state.currentProject?.Path) {
-            await fileStore.loadProjectFiles(state.currentProject.Path);
+            fileStore.loadProjectFiles(state.currentProject.Path);
         }
         
-        setKeyboardContext('editor');
+        setKeyboardContext('global');
+
+        // Register terminal shortcut
+        registerCommand('terminal.open', () => {
+            // Ensure bottom pane is not collapsed
+            bottomPaneStore.update(state => ({
+                ...state,
+                collapsed: false,
+                activeSection: 'terminal'
+            }));
+        });
+
         registerCommand('file.showFileFinder', () => showFileFinder = true);
         
         // Register sidebar toggle commands
@@ -238,7 +246,7 @@
             <div class="flex-1 relative overflow-hidden">
                 <Editor />
             </div>
-            {#if !bottomPaneState.collapsed}
+            {#if !$bottomPaneStore.collapsed}
                 <ResizeHandle 
                     orientation="horizontal" 
                     side="top"
@@ -246,7 +254,7 @@
                     minSize={100} 
                     maxSize={800}
                 />
-                <BottomPane state={bottomPaneState} height={bottomPaneHeight} />
+                <BottomPane state={$bottomPaneStore} height={bottomPaneHeight} />
             {/if}
         </main>
         

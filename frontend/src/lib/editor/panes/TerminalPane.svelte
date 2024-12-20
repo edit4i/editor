@@ -1,6 +1,7 @@
 <script lang="ts">
     import XtermComponent from '@/lib/terminal/XtermComponent.svelte';
     import { terminalStore, AVAILABLE_SHELLS } from '@/stores/terminalStore';
+    import { bottomPaneStore } from '@/stores/bottomPaneStore';
     import { Plus, X, ChevronLeft, ChevronRight } from 'lucide-svelte';
     import Button from '@/lib/components/Button.svelte';
     import Select from '@/lib/components/Select.svelte';
@@ -10,6 +11,16 @@
 
     let selectedShell = AVAILABLE_SHELLS[0];
     let tabsContainer: HTMLElement;
+    let terminals: Record<string, XtermComponent> = {};
+
+    // Watch for bottom pane state changes
+    $: if ($bottomPaneStore.activeSection === 'terminal' && !$bottomPaneStore.collapsed) {
+        // Find active terminal and focus it
+        const activeTab = $terminalStore.find(tab => tab.active);
+        if (activeTab) {
+            terminals[activeTab.id]?.focus();
+        }
+    }
 
     // Handle tab actions
     function handleNewTab() {
@@ -25,6 +36,8 @@
         } else {
             terminalStore.setActiveTab(id);
             scrollToTab(id);
+            // Focus the terminal when clicking its tab
+            terminals[id]?.focus();
         }
     }
 
@@ -130,7 +143,13 @@
                 class="absolute inset-0"
                 class:hidden={!tab.active}
             >
-                <XtermComponent {height} id={tab.id} shell={tab.shell} active={tab.active} />
+                <XtermComponent 
+                    bind:this={terminals[tab.id]} 
+                    {height} 
+                    id={tab.id} 
+                    shell={tab.shell} 
+                    active={tab.active} 
+                />
             </div>
         {/each}
     </div>

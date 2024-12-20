@@ -328,6 +328,17 @@ const defaultKeybindings: KeyBindingConfig = {
             }
         }
     })).reduce((acc, binding) => ({ ...acc, ...binding }), {}),
+    // Terminal shortcuts
+    'terminal.open': {
+        defaultBinding: {
+            key: 'j',
+            modifiers: ['ctrl'],
+            description: 'Open Terminal',
+            category: 'Terminal',
+            context: ['global']
+        },
+        action: () => {}
+    },
 };
 
 // Store for custom keybindings

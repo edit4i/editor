@@ -3,6 +3,7 @@
     import { addKeyboardContext, removeKeyboardContext } from '@/stores/keyboardStore';
     import type { BottomPaneState } from '@/types/ui';
     import TerminalPane from '@/lib/editor/panes/TerminalPane.svelte';
+    import { bottomPaneStore } from '@/stores/bottomPaneStore';
 
     export let state: BottomPaneState;
     export let height: number;
@@ -16,6 +17,13 @@
     onDestroy(() => {
         removeKeyboardContext('bottomPane');
     });
+
+    // Watch for state changes
+    $: if (!state.collapsed) {
+        addKeyboardContext('bottomPane');
+    } else {
+        removeKeyboardContext('bottomPane');
+    }
 </script>
 
 <div class="w-full flex flex-col overflow-hidden border-t border-gray-800" style="height: {height}px">

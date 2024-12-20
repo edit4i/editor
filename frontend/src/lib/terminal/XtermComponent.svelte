@@ -170,6 +170,13 @@
         }
     }
 
+    // Expose focus method
+    export function focus() {
+        if (terminal) {
+            terminal.focus();
+        }
+    }
+
     onMount(() => {
         initializeTerminal();
     });
