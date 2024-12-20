@@ -1,7 +1,6 @@
 <script lang="ts">
     import { X, Circle, ChevronLeft, ChevronRight } from "lucide-svelte";
     import { onMount, onDestroy } from 'svelte';
-    import type { Tab } from "@/types/editor";
     import type { SidebarState } from "@/types/ui";
     import LeftSidebar from "@/lib/editor/LeftSidebar.svelte";
     import RightSidebar from "@/lib/editor/RightSidebar.svelte";
@@ -68,14 +67,23 @@
             // Find the tab element
             const tabElement = tabsContainer.querySelector(`[data-tab-id="${id}"]`);
             if (tabElement) {
-                tabElement.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+                const containerWidth = tabsContainer.offsetWidth;
+                const tabWidth = (tabElement as HTMLElement).offsetWidth;
+                const tabLeft = (tabElement as HTMLElement).offsetLeft;
+                const scrollLeft = tabLeft - (containerWidth - tabWidth) / 2;
+                
+                tabsContainer.scrollTo({
+                    left: scrollLeft,
+                    behavior: 'smooth'
+                });
             }
         }
     }
 
     // Watch for active file changes
     $: if ($fileStore.activeFilePath) {
-        scrollToTab($fileStore.activeFilePath);
+        // Wait for the DOM to update before scrolling
+        setTimeout(() => scrollToTab($fileStore.activeFilePath), 0);
     }
 
     function handleCloseTab(id: string) {

@@ -12,6 +12,12 @@
     let tabsContainer: HTMLElement;
 
     // Handle tab actions
+    function handleNewTab() {
+        const newId = terminalStore.addTab(selectedShell);
+        // Wait for the DOM to update before scrolling
+        setTimeout(() => scrollToTab(newId), 0);
+    }
+
     function handleTabClick(event: MouseEvent, id: string) {
         if (event.button === 1) { // Middle click
             event.preventDefault();
@@ -32,7 +38,15 @@
             // Find the tab element
             const tabElement = tabsContainer.querySelector(`[data-tab-id="${id}"]`);
             if (tabElement) {
-                tabElement.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+                const containerWidth = tabsContainer.offsetWidth;
+                const tabWidth = (tabElement as HTMLElement).offsetWidth;
+                const tabLeft = (tabElement as HTMLElement).offsetLeft;
+                const scrollLeft = tabLeft - (containerWidth - tabWidth) / 2;
+                
+                tabsContainer.scrollTo({
+                    left: scrollLeft,
+                    behavior: 'smooth'
+                });
             }
         }
     }
@@ -103,7 +117,7 @@
             />
             <Button
                 variant="ghost"
-                on:click={() => terminalStore.addTab(selectedShell)}
+                on:click={handleNewTab}
             >
                 <Plus size={14} />
             </Button>

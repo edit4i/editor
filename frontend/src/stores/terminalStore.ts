@@ -22,11 +22,12 @@ function createTerminalStore() {
     return {
         subscribe,
         addTab: (shell: string = 'bash') => {
+            let newId: string;
             update(tabs => {
                 // Deactivate all tabs
                 const updatedTabs = tabs.map(tab => ({ ...tab, active: false }));
                 // Add new tab
-                const newId = String(Date.now()); // Use timestamp for unique IDs
+                newId = String(Date.now()); // Use timestamp for unique IDs
                 return [...updatedTabs, { 
                     id: newId, 
                     name: `Terminal ${tabs.length + 1}`, 
@@ -34,6 +35,7 @@ function createTerminalStore() {
                     shell
                 }];
             });
+            return newId;
         },
         removeTab: (id: string) => {
             update(tabs => {
