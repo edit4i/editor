@@ -42,10 +42,13 @@
         const availableWidth = width - paddingLeft - paddingRight;
         const availableHeight = height - paddingTop - paddingBottom;
 
+        // TODO: Account for bottom status bar without hardcoding
+        const bottomBarRows = 2;
+
         const charWidth = 9;
         const charHeight = 17;
         const cols = Math.floor(availableWidth / charWidth);
-        const rows = Math.floor(availableHeight / charHeight);
+        const rows = Math.floor(availableHeight / charHeight) - bottomBarRows;
 
         console.log('[Terminal] Resizing to:', { cols, rows });
         terminal.resize(cols, rows);
