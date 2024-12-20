@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { RefreshCw, ChevronsUp } from 'lucide-svelte';
+    import { RefreshCw, ChevronsUp, FilesIcon } from 'lucide-svelte';
     import Button from '../../components/Button.svelte';
     import FileTree from '../../components/FileTree.svelte';
     import { fileStore } from '@/stores/fileStore';
@@ -24,6 +24,7 @@
 <div class="flex flex-col h-full">
     <div class="flex items-center justify-between h-[35px] px-4 border-b border-gray-800">
         <div class="flex items-center space-x-2">
+            <FilesIcon size={16} />
             <span class="text-sm font-medium">Explorer</span>
         </div>
         <div class="flex items-center space-x-1">

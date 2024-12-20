@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Send, MoreVertical, Trash2, Settings } from 'lucide-svelte';
+  import { Send, MoreVertical, Trash2, Settings, BotIcon } from 'lucide-svelte';
   import Button from '../components/Button.svelte';
   import Input from '../components/Input.svelte';
   import Select from '../components/Select.svelte';
@@ -58,7 +58,10 @@
 {#if !collapsed}
   <div class="bg-gray-900 h-full w-full flex flex-col overflow-hidden border-l border-gray-800">
     <div class="h-[35px] flex items-center justify-between px-4 border-b border-gray-800">
-      <h2 class="font-medium">AI Assistant</h2>
+      <div class="flex space-x-2 text-sm font-medium flex gap-2">
+        <BotIcon size={16} class="mt-[.1rem]" />
+        <span>AI Assistant</span>
+      </div>
       <div class="flex items-center space-x-2">
         <div class="w-40">
           <Select
