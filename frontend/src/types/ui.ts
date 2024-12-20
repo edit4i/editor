@@ -19,3 +19,9 @@ export interface SidebarState {
     activeSection: 'files' | 'git';
     isAllCollapsed: boolean;
 }
+
+export interface BottomPaneState {
+    collapsed: boolean;
+    activeSection: 'terminal' | 'problems' | 'output';
+    isAllCollapsed: boolean;
+}

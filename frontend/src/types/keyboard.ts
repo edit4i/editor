@@ -7,7 +7,8 @@ export type KeyboardContext =
     | 'editor'
     | 'aiAssistant'
     | 'git'
-    | 'fileManager';
+    | 'fileManager'
+    | 'bottomPane';
 
 export type KeyBinding = {
     key: string;

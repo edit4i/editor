@@ -15,6 +15,7 @@
     import Editor from "@/lib/editor/Editor.svelte";
     import FileFinder from "@/lib/components/FileFinder.svelte";
     import Modal from "@/lib/components/Modal.svelte";
+    import BottomPane from "@/lib/editor/panes/BottomPane.svelte";
 
     // Convert open files to tabs
     $: tabs = Array.from($fileStore.openFiles.entries()).map(([path, file]) => ({
@@ -37,9 +38,17 @@
     let showCommandPalette = false;
     let showFileFinder = false;
 
-    // Sidebar widths
+    // Bottom pane state
+    let bottomPaneState: any = {
+        collapsed: false,
+        activeSection: 'terminal',
+        isAllCollapsed: false
+    };
+
+    // Sidebar widths and heights
     let leftSidebarWidth = 300;
     let rightSidebarWidth = 600;
+    let bottomPaneHeight = 300;
 
     // Source control state
     let modifiedFilesCount = 2;
@@ -154,16 +163,15 @@
     
     <div class="flex flex-1 overflow-hidden">
         {#if !leftSidebarState.collapsed}
-            <div style="width: {leftSidebarWidth}px" class="flex-shrink-0">
+            <div class="h-full" style="width: {leftSidebarWidth}px">
                 <LeftSidebar state={leftSidebarState} />
             </div>
-            <ResizeHandle 
-                side="left" 
-                currentWidth={leftSidebarWidth}
-                onResize={(width) => {
-                    leftSidebarWidth = width;
-                    handleResize();
-                }}
+            <ResizeHandle
+                orientation="vertical"
+                side="right"
+                bind:size={leftSidebarWidth}
+                minSize={200}
+                maxSize={600}
             />
         {/if}
 
@@ -219,22 +227,30 @@
                 </div>
             </div>
 
-            <Editor
-                on:showFileFinder={() => showFileFinder = true}
-            />
-            
-         </main>
+            <div class="flex-1 relative overflow-hidden">
+                <Editor />
+            </div>
+            {#if !bottomPaneState.collapsed}
+                <ResizeHandle 
+                    orientation="horizontal" 
+                    side="top"
+                    bind:size={bottomPaneHeight}
+                    minSize={100} 
+                    maxSize={800}
+                />
+                <BottomPane state={bottomPaneState} height={bottomPaneHeight} />
+            {/if}
+        </main>
         
         {#if !rightSidebarCollapsed}
-            <ResizeHandle 
-                side="right" 
-                currentWidth={rightSidebarWidth}
-                onResize={(width) => {
-                    rightSidebarWidth = width;
-                    handleResize();
-                }}
+            <ResizeHandle
+                orientation="vertical"
+                side="left"
+                bind:size={rightSidebarWidth}
+                minSize={200}
+                maxSize={800}
             />
-            <div style="width: {rightSidebarWidth}px" class="flex-shrink-0">
+            <div class="h-full" style="width: {rightSidebarWidth}px">
                 <RightSidebar collapsed={rightSidebarCollapsed} />
             </div>
         {/if}

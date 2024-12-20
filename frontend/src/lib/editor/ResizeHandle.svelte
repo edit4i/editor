@@ -1,38 +1,48 @@
 <script lang="ts">
-    import { ChevronLeft, ChevronRight } from 'lucide-svelte';
+    import { ChevronLeft, ChevronRight, ChevronUp, ChevronDown } from 'lucide-svelte';
     import { fade } from 'svelte/transition';
     
-    export let side: 'left' | 'right';
-    export let onResize: (width: number) => void;
-    export let currentWidth: number;
+    export let orientation: 'horizontal' | 'vertical' = 'vertical';
+    export let side: 'left' | 'right' | 'top' | 'bottom' = 'right';
+    export let size: number;
+    export let minSize = 200;
+    export let maxSize = 600;
     
     let isDragging = false;
     let isHovering = false;
     let hoverTimeout: NodeJS.Timeout;
     let showHandle = false;
-    let startX: number;
-    let startWidth: number;
+    let startPos: number;
+    let startSize: number;
     
     function handleMouseDown(e: MouseEvent) {
         e.preventDefault();
         isDragging = true;
-        startX = e.clientX;
-        startWidth = currentWidth;
+        showHandle = true;
+        startPos = orientation === 'vertical' ? e.clientX : e.clientY;
+        startSize = size;
         document.body.style.userSelect = 'none';
-        document.body.style.cursor = 'ew-resize';
+        document.body.style.cursor = orientation === 'vertical' ? 'ew-resize' : 'ns-resize';
             
         const mouseMoveHandler = (e: MouseEvent) => {
             if (!isDragging) return;
             e.preventDefault();
-            const dx = e.clientX - startX;
-            const newWidth = side === 'left' 
-                ? Math.max(200, Math.min(600, startWidth + dx))
-                : Math.max(200, Math.min(600, startWidth - dx));
-            onResize(newWidth);
+            const delta = orientation === 'vertical' 
+                ? e.clientX - startPos 
+                : e.clientY - startPos;
+            
+            let newSize;
+            if (side === 'left' || side === 'top') {
+                newSize = Math.max(minSize, Math.min(maxSize, startSize - delta));
+            } else {
+                newSize = Math.max(minSize, Math.min(maxSize, startSize + delta));
+            }
+            size = newSize;
         };
         
         const mouseUpHandler = () => {
             isDragging = false;
+            showHandle = false;
             document.removeEventListener('mousemove', mouseMoveHandler);
             document.removeEventListener('mouseup', mouseUpHandler);
             document.body.style.userSelect = '';
@@ -45,20 +55,31 @@
     
     function handleMouseEnter() {
         isHovering = true;
-        hoverTimeout = setTimeout(() => {
-            showHandle = true;
-        }, 1500);
+        showHandle = true;
     }
     
     function handleMouseLeave() {
-        isHovering = false;
-        showHandle = false;
-        clearTimeout(hoverTimeout);
+        if (!isDragging) {
+            isHovering = false;
+            showHandle = false;
+        }
     }
+
+    $: isVertical = orientation === 'vertical';
+    $: resizeClasses = isVertical 
+        ? 'w-1 hover:w-[5px] transition-all duration-200 ease-out cursor-ew-resize'
+        : 'h-1 hover:h-[5px] transition-all duration-200 ease-out cursor-ns-resize';
+
+    $: tooltipPositionClasses = isVertical
+        ? `top-1/2 -translate-y-1/2 ${side === 'left' ? 'left-4' : 'right-4'}`
+        : `left-1/2 -translate-x-1/2 ${side === 'top' ? 'top-4' : 'bottom-4'}`;
 </script>
 
+<!-- svelte-ignore a11y-no-static-element-interactions -->
+
 <div
-    class="relative w-1 hover:w-[5px] transition-all duration-200 ease-out cursor-ew-resize group select-none"
+    class={`relative group select-none z-[9999] ${resizeClasses}`}
+    class:bg-sky-500={isDragging}
     class:border-sky-500={isDragging}
     class:border-2={isDragging}
     on:mousedown={handleMouseDown}
@@ -73,24 +94,46 @@
     
     {#if (showHandle || isDragging) && side === 'left'}
         <div 
-            class="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 left-0 bg-gray-700 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+            class="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 left-0 bg-gray-700 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-[9999]"
+            class:bg-sky-500={isDragging}
             class:opacity-100={isDragging}
         >
-            <ChevronLeft size={16} class="text-gray-300" />
+            <ChevronLeft size={16} class="text-white" />
         </div>
     {/if}
     
     {#if (showHandle || isDragging) && side === 'right'}
         <div 
-            class="absolute top-1/2 -translate-y-1/2 translate-x-1/2 right-0 bg-gray-700 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+            class="absolute top-1/2 -translate-y-1/2 translate-x-1/2 right-0 bg-gray-700 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-[9999]"
+            class:bg-sky-500={isDragging}
             class:opacity-100={isDragging}
         >
-            <ChevronRight size={16} class="text-gray-300" />
+            <ChevronRight size={16} class="text-white" />
+        </div>
+    {/if}
+
+    {#if (showHandle || isDragging) && side === 'top'}
+        <div 
+            class="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 top-0 bg-gray-700 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-[9999]"
+            class:bg-sky-500={isDragging}
+            class:opacity-100={isDragging}
+        >
+            <ChevronUp size={16} class="text-white" />
+        </div>
+    {/if}
+
+    {#if (showHandle || isDragging) && side === 'bottom'}
+        <div 
+            class="absolute left-1/2 -translate-x-1/2 translate-y-1/2 bottom-0 bg-gray-700 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-[9999]"
+            class:bg-sky-500={isDragging}
+            class:opacity-100={isDragging}
+        >
+            <ChevronDown size={16} class="text-white" />
         </div>
     {/if}
     
     <div 
-        class="absolute top-1/2 -translate-y-1/2 {side === 'left' ? 'left-4' : 'right-4'} whitespace-nowrap bg-gray-800 text-gray-300 text-xs py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none select-none"
+        class={`absolute whitespace-nowrap bg-gray-800 text-gray-300 text-xs py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none select-none z-[9999] ${tooltipPositionClasses}`}
         class:opacity-100={isDragging}
     >
         Drag to resize
