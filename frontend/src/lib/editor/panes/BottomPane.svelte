@@ -2,6 +2,7 @@
     import { onMount, onDestroy } from 'svelte';
     import { addKeyboardContext, removeKeyboardContext } from '@/stores/keyboardStore';
     import type { BottomPaneState } from '@/types/ui';
+    import TerminalPane from '@/lib/editor/panes/TerminalPane.svelte';
 
     export let state: BottomPaneState;
     export let height: number;
@@ -34,12 +35,7 @@
 
     <div class="flex-1 overflow-auto">
         {#if state.activeSection === 'terminal'}
-            <div class="p-2">
-                <!-- Terminal content will go here -->
-                <div class="font-mono text-sm">
-                    <p class="text-gray-500">$ </p>
-                </div>
-            </div>
+            <TerminalPane />
         {:else if state.activeSection === 'problems'}
             <div class="p-2">
                 <!-- Problems content will go here -->
