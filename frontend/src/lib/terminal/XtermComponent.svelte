@@ -8,6 +8,19 @@
     let terminalElement: HTMLElement;
     let terminal: Terminal;
 
+    const terminalTheme = {
+        background: '#181818', // Darker background
+        foreground: '#c5c8c6', // Slightly darker text color
+        cursor: '#528bff', // Bright blue cursor
+        selectionBackground: '#3e4451', // Selection color
+        selectionForeground: '#d1d5db', // Selection color
+        black: '#1e1e1e',
+        red: '#e06c75',
+        green: '#98c379',
+        yellow: '#e5c07b',
+        blue: '#61afef',
+    };
+
     // Function to update terminal size
     function updateTerminalSize() {
         if (!terminal || !terminalElement) return;
@@ -43,11 +56,7 @@
         terminal = new Terminal({
             fontSize: 14,
             fontFamily: 'monospace',
-            theme: {
-                background: '#1f2937', // Tailwind gray-800
-                foreground: '#d1d5db', // Tailwind gray-300
-                cursor: '#60a5fa', // Tailwind blue-400
-            }
+            theme: terminalTheme
         });
 
         terminal.open(terminalElement);
@@ -69,7 +78,7 @@
 </script>
 
 <div 
-    class="h-full w-full" 
+    class={`h-full w-full p-2`}
+    style={`background-color: ${terminalTheme.background};`}
     bind:this={terminalElement} 
-    style="height: {height}px"
 />
