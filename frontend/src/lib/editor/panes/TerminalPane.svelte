@@ -19,6 +19,11 @@
             terminalStore.setActiveTab(id);
         }
     }
+
+    function handleRemoveTab(event: MouseEvent, id: string) {
+        event.stopPropagation();
+        terminalStore.removeTab(id);
+    }
 </script>
 
 <div class="h-full w-full bg-gray-800 overflow-hidden flex flex-col">
@@ -26,7 +31,7 @@
         <div class="flex-1 flex items-center overflow-x-auto">
             {#each $terminalStore as tab (tab.id)}
                 <button
-                    class="flex items-center h-[35px] px-4 border-r border-gray-700 hover:bg-gray-700 transition-colors duration-200 gap-2 group"
+                    class="flex items-center h-[35px] px-4 border-r border-gray-700 hover:bg-gray-700 transition-colors duration-200 gap-2 group whitespace-nowrap"
                     class:bg-gray-900={tab.active}
                     class:before:absolute={tab.active}
                     class:before:top-0={tab.active}
@@ -41,7 +46,7 @@
                     {#if $terminalStore.length > 1}
                         <button
                             class="opacity-0 group-hover:opacity-100 hover:text-sky-500 transition-opacity duration-200"
-                            on:click|stopPropagation={() => terminalStore.removeTab(tab.id)}
+                            on:click={(e) => handleRemoveTab(e, tab.id)}
                         >
                             <X size={14} />
                         </button>

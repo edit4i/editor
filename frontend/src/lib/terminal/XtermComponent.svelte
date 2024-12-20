@@ -8,7 +8,8 @@
     export let shell: string;
 
     let terminalElement: HTMLElement;
-    let terminal: Terminal;
+    let terminal: Terminal | null = null;
+    let isDestroyed = false;
 
     const terminalTheme = {
         background: '#181818', // Darker background
@@ -25,7 +26,7 @@
 
     // Function to update terminal size
     function updateTerminalSize() {
-        if (!terminal || !terminalElement) return;
+        if (!terminal || !terminalElement || isDestroyed) return;
         
         // Get the current dimensions of the container
         const computedStyle = window.getComputedStyle(terminalElement);
@@ -50,11 +51,13 @@
     }
 
     // Watch for height changes
-    $: if (height) {
+    $: if (height && terminal && !isDestroyed) {
         updateTerminalSize();
     }
 
     onMount(() => {
+        if (isDestroyed) return;
+
         terminal = new Terminal({
             fontSize: 14,
             fontFamily: 'monospace',
@@ -72,10 +75,17 @@
     });
 
     onDestroy(() => {
-        if (terminal) {
-            terminal.dispose();
-        }
+        isDestroyed = true;
         window.removeEventListener('resize', updateTerminalSize);
+        
+        if (terminal) {
+            try {
+                terminal.dispose();
+            } catch (error) {
+                console.error('Error disposing terminal:', error);
+            }
+            terminal = null;
+        }
     });
 </script>
 
