@@ -130,7 +130,7 @@
                 class="absolute inset-0"
                 class:hidden={!tab.active}
             >
-                <XtermComponent {height} id={tab.id} shell={tab.shell} />
+                <XtermComponent {height} id={tab.id} shell={tab.shell} active={tab.active} />
             </div>
         {/each}
     </div>
