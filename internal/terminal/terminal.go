@@ -34,6 +34,7 @@ func NewTerminal(id string, opts TerminalOptions, onEvent func(*Event)) (*Termin
 		done:    make(chan struct{}),
 		onEvent: onEvent,
 		shell:   opts.Shell,
+		cwd:     opts.Cwd,
 	}
 
 	// Store the terminal
@@ -48,6 +49,7 @@ type Terminal struct {
 	mu      sync.Mutex
 	onEvent func(*Event)
 	shell   string
+	cwd     string
 	cmd     *exec.Cmd
 	pty     *os.File
 }
@@ -57,11 +59,16 @@ func (t *Terminal) Start() error {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 
-	// Start the shell process with PTY
+	// Create command
 	t.cmd = exec.Command(t.shell)
 	t.cmd.Env = append(os.Environ(), "TERM=xterm-256color")
 
-	// Start with PTY
+	// Set working directory if specified
+	if t.cwd != "" {
+		t.cmd.Dir = t.cwd
+	}
+
+	// Start the command with a pty
 	var err error
 	t.pty, err = pty.Start(t.cmd)
 	if err != nil {

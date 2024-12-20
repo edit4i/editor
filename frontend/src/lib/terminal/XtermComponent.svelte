@@ -4,6 +4,8 @@
     import '@xterm/xterm/css/xterm.css';
     import { CreateTerminal, DestroyTerminal, HandleInput, ResizeTerminal } from '@/lib/wailsjs/go/main/App';
     import { EventsOn, EventsOff } from '@/lib/wailsjs/runtime/runtime';
+    import { projectStore } from '@/stores/project';
+    import { get } from 'svelte/store';
 
     export let height: number;
     export let id: string;
@@ -161,10 +163,13 @@
             }
         });
 
+        // Get current project path
+        const projectPath = get(projectStore).currentProject?.path || '';
+
         // Create backend terminal
         console.log('[Terminal] Creating backend terminal');
         try {
-            await CreateTerminal(id, shell);
+            await CreateTerminal(id, shell, projectPath);
             console.log('[Terminal] Backend terminal created');
 
             // Subscribe to terminal events

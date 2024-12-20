@@ -1,4 +1,5 @@
 import { writable, get } from 'svelte/store';
+import { projectStore } from './project';
 
 export interface TerminalTab {
     id: string;
@@ -22,7 +23,7 @@ function createTerminalStore() {
     return {
         subscribe,
         addTab: (shell: string = 'bash') => {
-            let newId: string;
+            let newId: string = '';
             update(tabs => {
                 // Deactivate all tabs
                 const updatedTabs = tabs.map(tab => ({ ...tab, active: false }));

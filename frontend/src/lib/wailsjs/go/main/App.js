@@ -14,8 +14,8 @@ export function CreateFile(arg1) {
   return window['go']['main']['App']['CreateFile'](arg1);
 }
 
-export function CreateTerminal(arg1, arg2) {
-  return window['go']['main']['App']['CreateTerminal'](arg1, arg2);
+export function CreateTerminal(arg1, arg2, arg3) {
+  return window['go']['main']['App']['CreateTerminal'](arg1, arg2, arg3);
 }
 
 export function DeleteFile(arg1) {

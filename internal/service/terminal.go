@@ -25,8 +25,8 @@ func NewTerminalService(onEvent func(id string, event *terminal.Event)) *Termina
 }
 
 // CreateTerminal creates a new terminal instance with the specified shell
-func (s *TerminalService) CreateTerminal(id string, shell string) error {
-	log.Printf("[TerminalService] Creating terminal: id=%s, shell=%s", id, shell)
+func (s *TerminalService) CreateTerminal(id string, shell string, cwd string) error {
+	log.Printf("[TerminalService] Creating terminal: id=%s, shell=%s, cwd=%s", id, shell, cwd)
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -49,6 +49,7 @@ func (s *TerminalService) CreateTerminal(id string, shell string) error {
 		Shell: shell,
 		Cols:  80,
 		Rows:  24,
+		Cwd:   cwd,
 	}, terminalEventHandler)
 	if err != nil {
 		log.Printf("[TerminalService] Failed to create terminal: %v", err)

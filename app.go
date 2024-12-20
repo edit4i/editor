@@ -149,8 +149,8 @@ func (a *App) DeleteFile(path string) error {
 }
 
 // CreateTerminal creates a new terminal instance
-func (a *App) CreateTerminal(id string, shell string) error {
-	return a.terminalService.CreateTerminal(id, shell)
+func (a *App) CreateTerminal(id string, shell string, cwd string) error {
+	return a.terminalService.CreateTerminal(id, shell, cwd)
 }
 
 // DestroyTerminal destroys a terminal instance
