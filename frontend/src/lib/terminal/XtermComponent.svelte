@@ -13,6 +13,8 @@
     let terminal: Terminal | null = null;
     let isDestroyed = false;
 
+    console.log('[Terminal] Initializing with id:', id, 'shell:', shell);
+
     const terminalTheme = {
         background: '#181818',
         foreground: '#c5c8c6',
@@ -45,33 +47,43 @@
         const cols = Math.floor(availableWidth / charWidth);
         const rows = Math.floor(availableHeight / charHeight);
 
+        console.log('[Terminal] Resizing to:', { cols, rows });
         terminal.resize(cols, rows);
 
         try {
             await ResizeTerminal(id, cols, rows);
+            console.log('[Terminal] Backend resize successful');
         } catch (error) {
-            console.error('Error resizing terminal:', error);
+            console.error('[Terminal] Error resizing:', error);
         }
     }
 
     // Handle terminal events from backend
     function handleTerminalEvent(event: any) {
+        console.log('[Terminal] Received event:', event);
         if (!terminal || isDestroyed) return;
 
         switch (event.Type) {
             case 0: // EventData
                 if (event.Data) {
-                    const data = new Uint8Array(event.Data);
-                    terminal.write(data);
+                    // Decode base64 data
+                    const base64Data = event.Data;
+                    const binaryStr = atob(base64Data);
+                    const bytes = Uint8Array.from(binaryStr, c => c.charCodeAt(0));
+                    
+                    console.log('[Terminal] Writing decoded data:', new TextDecoder().decode(bytes));
+                    terminal.write(bytes);
                 }
                 break;
             case 1: // EventResize
+                console.log('[Terminal] Resize event:', event);
                 terminal.resize(event.Cols, event.Rows);
                 break;
             case 2: // EventCursor
-                // Xterm.js handles cursor position automatically
+                console.log('[Terminal] Cursor event:', event);
                 break;
             case 3: // EventExit
+                console.log('[Terminal] Exit event received');
                 isDestroyed = true;
                 terminal.write('\r\nTerminal session ended.\r\n');
                 break;
@@ -80,10 +92,12 @@
 
     // Watch for height changes
     $: if (height && terminal && !isDestroyed) {
+        console.log('[Terminal] Height changed:', height);
         updateTerminalSize();
     }
 
     onMount(async () => {
+        console.log('[Terminal] Mounting component');
         if (isDestroyed) return;
 
         terminal = new Terminal({
@@ -96,32 +110,46 @@
         // Handle terminal input
         terminal.onData((data) => {
             if (!isDestroyed) {
-                // Convert string to byte array
-                const bytes = new TextEncoder().encode(data);
-                HandleInput(id, Array.from(bytes));
+                console.log('[Terminal] Input received:', data);
+                // Handle Enter key
+                if (data === '\r') {
+                    console.log('[Terminal] Enter key pressed');
+                    // Send carriage return
+                    const bytes = new TextEncoder().encode('\r');
+                    HandleInput(id, Array.from(bytes));
+                } else {
+                    // Convert string to byte array and send
+                    const bytes = new TextEncoder().encode(data);
+                    HandleInput(id, Array.from(bytes));
+                }
             }
         });
 
         // Handle terminal resize
         terminal.onResize(({ cols, rows }) => {
             if (!isDestroyed) {
+                console.log('[Terminal] Terminal resize:', { cols, rows });
                 ResizeTerminal(id, cols, rows);
             }
         });
 
         terminal.open(terminalElement);
+        console.log('[Terminal] Terminal opened');
 
         try {
+            console.log('[Terminal] Creating backend terminal');
             // Create terminal on backend
             await CreateTerminal(id, shell);
+            console.log('[Terminal] Backend terminal created');
 
             // Initial size update
             await updateTerminalSize();
 
             // Subscribe to terminal events
+            console.log('[Terminal] Subscribing to events');
             EventsOn(`terminal:${id}`, handleTerminalEvent);
         } catch (error) {
-            console.error('Error initializing terminal:', error);
+            console.error('[Terminal] Error initializing:', error);
             terminal.write('Error initializing terminal\r\n');
         }
 
@@ -130,6 +158,7 @@
     });
 
     onDestroy(async () => {
+        console.log('[Terminal] Destroying terminal');
         isDestroyed = true;
         window.removeEventListener('resize', updateTerminalSize);
         
@@ -141,8 +170,9 @@
                 // Destroy terminal on backend
                 await DestroyTerminal(id);
                 terminal.dispose();
+                console.log('[Terminal] Terminal destroyed');
             } catch (error) {
-                console.error('Error disposing terminal:', error);
+                console.error('[Terminal] Error disposing:', error);
             }
             terminal = null;
         }

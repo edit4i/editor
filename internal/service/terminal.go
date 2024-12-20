@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"log"
 	"sync"
 
 	"github.com/edit4i/editor/internal/terminal"
@@ -16,6 +17,7 @@ type TerminalService struct {
 
 // NewTerminalService creates a new terminal service
 func NewTerminalService(onEvent func(id string, event *terminal.Event)) *TerminalService {
+	log.Println("[TerminalService] Creating new terminal service")
 	return &TerminalService{
 		terminals: make(map[string]*terminal.Terminal),
 		onEvent:   onEvent,
@@ -24,16 +26,19 @@ func NewTerminalService(onEvent func(id string, event *terminal.Event)) *Termina
 
 // CreateTerminal creates a new terminal instance with the specified shell
 func (s *TerminalService) CreateTerminal(id string, shell string) error {
+	log.Printf("[TerminalService] Creating terminal: id=%s, shell=%s", id, shell)
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
 	// Check if terminal already exists
 	if _, exists := s.terminals[id]; exists {
+		log.Printf("[TerminalService] Terminal %s already exists", id)
 		return fmt.Errorf("terminal with id %s already exists", id)
 	}
 
 	// Create event handler for this terminal
 	terminalEventHandler := func(event *terminal.Event) {
+		log.Printf("[TerminalService] Event from terminal %s: type=%d", id, event.Type)
 		if s.onEvent != nil {
 			s.onEvent(id, event)
 		}
@@ -46,25 +51,35 @@ func (s *TerminalService) CreateTerminal(id string, shell string) error {
 		Rows:  24,
 	}, terminalEventHandler)
 	if err != nil {
+		log.Printf("[TerminalService] Failed to create terminal: %v", err)
 		return fmt.Errorf("failed to create terminal: %w", err)
 	}
 
+	// Send welcome message
+	log.Printf("[TerminalService] Sending welcome message to terminal %s", id)
+	term.Write([]byte(fmt.Sprintf("Welcome to Edit4i Terminal\r\nShell: %s\r\n", shell)))
+
 	// Start the terminal
+	log.Printf("[TerminalService] Starting terminal %s", id)
 	if err := term.Start(); err != nil {
+		log.Printf("[TerminalService] Failed to start terminal: %v", err)
 		return fmt.Errorf("failed to start terminal: %w", err)
 	}
 
 	s.terminals[id] = term
+	log.Printf("[TerminalService] Terminal %s created successfully", id)
 	return nil
 }
 
 // DestroyTerminal stops and removes a terminal instance
 func (s *TerminalService) DestroyTerminal(id string) error {
+	log.Printf("[TerminalService] Destroying terminal %s", id)
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
 	term, exists := s.terminals[id]
 	if !exists {
+		log.Printf("[TerminalService] Terminal %s not found", id)
 		return fmt.Errorf("terminal with id %s not found", id)
 	}
 
@@ -78,6 +93,7 @@ func (s *TerminalService) DestroyTerminal(id string) error {
 		})
 	}
 
+	log.Printf("[TerminalService] Terminal %s destroyed", id)
 	return nil
 }
 
@@ -96,8 +112,10 @@ func (s *TerminalService) GetTerminal(id string) (*terminal.Terminal, error) {
 
 // ResizeTerminal resizes the terminal window
 func (s *TerminalService) ResizeTerminal(id string, cols, rows int) error {
+	log.Printf("[TerminalService] Resizing terminal %s to %dx%d", id, cols, rows)
 	term, err := s.GetTerminal(id)
 	if err != nil {
+		log.Printf("[TerminalService] Error resizing terminal: %v", err)
 		return err
 	}
 
@@ -116,8 +134,10 @@ func (s *TerminalService) WriteToTerminal(id string, data []byte) error {
 
 // HandleInput handles input from the frontend
 func (s *TerminalService) HandleInput(id string, data []byte) error {
+	log.Printf("[TerminalService] Input received for terminal %s: %v", id, data)
 	term, err := s.GetTerminal(id)
 	if err != nil {
+		log.Printf("[TerminalService] Error handling input: %v", err)
 		return err
 	}
 

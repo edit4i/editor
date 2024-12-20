@@ -2,111 +2,151 @@ package terminal
 
 import (
 	"fmt"
+	"io"
+	"log"
+	"os"
+	"os/exec"
 	"sync"
+
+	"github.com/creack/pty"
 )
 
+// Terminal represents a terminal instance
 type Terminal struct {
-	screen  *Screen
 	done    chan struct{}
-	events  chan *Event
 	mu      sync.Mutex
 	onEvent func(*Event)
+	shell   string
+	cmd     *exec.Cmd
+	pty     *os.File
 }
 
+// NewTerminal creates a new terminal instance
 func NewTerminal(opts TerminalOptions, onEvent func(*Event)) (*Terminal, error) {
-	screen, err := newScreen(func(ev *Event) {
-		if onEvent != nil {
-			onEvent(ev)
-		}
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to create screen: %w", err)
-	}
-
 	t := &Terminal{
-		screen:  screen,
 		done:    make(chan struct{}),
-		events:  make(chan *Event, 100),
 		onEvent: onEvent,
-	}
-
-	// Set initial size
-	if opts.Cols > 0 && opts.Rows > 0 {
-		screen.resize(opts.Cols, opts.Rows)
+		shell:   opts.Shell,
 	}
 
 	return t, nil
 }
 
+// Start starts the terminal
 func (t *Terminal) Start() error {
-	go t.handleEvents()
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
+	// Start the shell process with PTY
+	t.cmd = exec.Command(t.shell)
+	t.cmd.Env = append(os.Environ(), "TERM=xterm-256color")
+
+	// Start with PTY
+	var err error
+	t.pty, err = pty.Start(t.cmd)
+	if err != nil {
+		return fmt.Errorf("failed to start pty: %w", err)
+	}
+
+	// Start reading from pty in a goroutine
+	go func() {
+		buffer := make([]byte, 4096)
+		for {
+			select {
+			case <-t.done:
+				return
+			default:
+				n, err := t.pty.Read(buffer)
+				if err != nil {
+					if err != io.EOF {
+						log.Printf("[Terminal] Error reading from pty: %v", err)
+					}
+					return
+				}
+				if n > 0 {
+					// Send data to frontend
+					if t.onEvent != nil {
+						t.onEvent(&Event{
+							Type: EventData,
+							Data: buffer[:n],
+						})
+					}
+				}
+			}
+		}
+	}()
+
 	return nil
 }
 
+// Stop stops the terminal
 func (t *Terminal) Stop() {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 
+	if t.cmd != nil && t.cmd.Process != nil {
+		t.cmd.Process.Kill()
+	}
+
+	if t.pty != nil {
+		t.pty.Close()
+	}
+
 	close(t.done)
-	t.screen.close()
 }
 
+// Write writes data directly to the terminal
 func (t *Terminal) Write(data []byte) error {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 
-	t.screen.write(data)
-	if t.onEvent != nil {
-		t.onEvent(&Event{
-			Type: EventData,
-			Data: data,
-		})
+	if t.pty != nil {
+		if _, err := t.pty.Write(data); err != nil {
+			return fmt.Errorf("failed to write to pty: %w", err)
+		}
 	}
+
 	return nil
 }
 
+// HandleInput handles input from the frontend
 func (t *Terminal) HandleInput(data []byte) error {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 
-	t.screen.write(data)
+	// Write input to pty
+	if t.pty != nil {
+		if _, err := t.pty.Write(data); err != nil {
+			return fmt.Errorf("failed to write to pty: %w", err)
+		}
+	}
+
 	return nil
 }
 
+// Resize resizes the terminal
 func (t *Terminal) Resize(cols, rows int) error {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 
-	t.screen.resize(cols, rows)
-	if t.onEvent != nil {
-		t.onEvent(&Event{
-			Type: EventResize,
-			Cols: cols,
-			Rows: rows,
-		})
-	}
-	return nil
-}
+	// Resize the pty
+	if t.pty != nil {
+		if err := pty.Setsize(t.pty, &pty.Winsize{
+			Rows: uint16(rows),
+			Cols: uint16(cols),
+		}); err != nil {
+			return fmt.Errorf("failed to resize pty: %w", err)
+		}
 
-func (t *Terminal) handleEvents() {
-	for {
-		select {
-		case <-t.done:
-			return
-		case ev := <-t.events:
-			t.mu.Lock()
-			switch ev.Type {
-			case EventData:
-				t.screen.write(ev.Data)
-			case EventResize:
-				t.screen.resize(ev.Cols, ev.Rows)
-			}
-			t.mu.Unlock()
-
-			// Notify event handler
-			if t.onEvent != nil {
-				t.onEvent(ev)
-			}
+		// Notify about resize
+		if t.onEvent != nil {
+			t.onEvent(&Event{
+				Type: EventResize,
+				Cols: cols,
+				Rows: rows,
+			})
 		}
 	}
+
+	return nil
 }
