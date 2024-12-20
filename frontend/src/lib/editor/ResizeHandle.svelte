@@ -10,10 +10,16 @@
     
     let isDragging = false;
     let isHovering = false;
-    let hoverTimeout: NodeJS.Timeout;
     let showHandle = false;
     let startPos: number;
     let startSize: number;
+
+    const handleConfig = {
+        left: { icon: ChevronLeft, position: 'top-1/2 -translate-y-1/2 -translate-x-1/2 left-0' },
+        right: { icon: ChevronRight, position: 'top-1/2 -translate-y-1/2 translate-x-1/2 right-0' },
+        top: { icon: ChevronUp, position: 'left-1/2 -translate-x-1/2 -translate-y-1/2 top-0' },
+        bottom: { icon: ChevronDown, position: 'left-1/2 -translate-x-1/2 translate-y-1/2 bottom-0' }
+    };
     
     function handleMouseDown(e: MouseEvent) {
         e.preventDefault();
@@ -69,14 +75,12 @@
     $: resizeClasses = isVertical 
         ? 'w-1 hover:w-[5px] transition-all duration-200 ease-out cursor-ew-resize'
         : 'h-1 hover:h-[5px] transition-all duration-200 ease-out cursor-ns-resize';
-
     $: tooltipPositionClasses = isVertical
         ? `top-1/2 -translate-y-1/2 ${side === 'left' ? 'left-4' : 'right-4'}`
         : `left-1/2 -translate-x-1/2 ${side === 'top' ? 'top-4' : 'bottom-4'}`;
 </script>
 
 <!-- svelte-ignore a11y-no-static-element-interactions -->
-
 <div
     class={`relative group select-none z-[9999] ${resizeClasses}`}
     class:bg-sky-500={isDragging}
@@ -92,43 +96,13 @@
         transition:fade={{ duration: 150 }}
     />
     
-    {#if (showHandle || isDragging) && side === 'left'}
+    {#if showHandle || isDragging}
         <div 
-            class="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 left-0 bg-gray-700 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-[9999]"
+            class={`absolute ${handleConfig[side].position} bg-gray-700 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-[9999]`}
             class:bg-sky-500={isDragging}
             class:opacity-100={isDragging}
         >
-            <ChevronLeft size={16} class="text-white" />
-        </div>
-    {/if}
-    
-    {#if (showHandle || isDragging) && side === 'right'}
-        <div 
-            class="absolute top-1/2 -translate-y-1/2 translate-x-1/2 right-0 bg-gray-700 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-[9999]"
-            class:bg-sky-500={isDragging}
-            class:opacity-100={isDragging}
-        >
-            <ChevronRight size={16} class="text-white" />
-        </div>
-    {/if}
-
-    {#if (showHandle || isDragging) && side === 'top'}
-        <div 
-            class="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 top-0 bg-gray-700 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-[9999]"
-            class:bg-sky-500={isDragging}
-            class:opacity-100={isDragging}
-        >
-            <ChevronUp size={16} class="text-white" />
-        </div>
-    {/if}
-
-    {#if (showHandle || isDragging) && side === 'bottom'}
-        <div 
-            class="absolute left-1/2 -translate-x-1/2 translate-y-1/2 bottom-0 bg-gray-700 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-[9999]"
-            class:bg-sky-500={isDragging}
-            class:opacity-100={isDragging}
-        >
-            <ChevronDown size={16} class="text-white" />
+            <svelte:component this={handleConfig[side].icon} size={16} class="text-white" />
         </div>
     {/if}
     
