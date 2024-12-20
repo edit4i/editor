@@ -124,13 +124,16 @@
         </div>
     </div>
 
-    {#each $terminalStore as tab (tab.id)}
-        {#if tab.active}
-            <div class="flex-1">
+    <div class="flex-1 relative">
+        {#each $terminalStore as tab (tab.id)}
+            <div 
+                class="absolute inset-0"
+                class:hidden={!tab.active}
+            >
                 <XtermComponent {height} id={tab.id} shell={tab.shell} />
             </div>
-        {/if}
-    {/each}
+        {/each}
+    </div>
 </div>
 
 <style>

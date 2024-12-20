@@ -12,6 +12,7 @@
     let terminalElement: HTMLElement;
     let terminal: Terminal | null = null;
     let isDestroyed = false;
+    let isInitialized = false;
 
     console.log('[Terminal] Initializing with id:', id, 'shell:', shell);
 
@@ -99,85 +100,76 @@
         updateTerminalSize();
     }
 
-    onMount(async () => {
+    async function initializeTerminal() {
+        if (isInitialized || isDestroyed) return;
+        
         console.log('[Terminal] Mounting component');
-        if (isDestroyed) return;
-
+        
+        // Create xterm.js instance
         terminal = new Terminal({
-            fontSize: 14,
-            fontFamily: 'monospace',
             theme: terminalTheme,
             cursorBlink: true,
+            allowProposedApi: true,
+            scrollback: 10000,
+            fontSize: 14,
+            fontFamily: 'monospace',
         });
+
+        // Attach terminal to DOM
+        terminal.open(terminalElement);
 
         // Handle terminal input
         terminal.onData((data) => {
-            if (!isDestroyed) {
-                console.log('[Terminal] Input received:', data);
-                // Handle Enter key
-                if (data === '\r') {
-                    console.log('[Terminal] Enter key pressed');
-                    // Send carriage return
-                    const bytes = new TextEncoder().encode('\r');
-                    HandleInput(id, Array.from(bytes));
-                } else {
-                    // Convert string to byte array and send
-                    const bytes = new TextEncoder().encode(data);
-                    HandleInput(id, Array.from(bytes));
-                }
+            console.log('[Terminal] Input received:', data);
+            if (isDestroyed) return;
+
+            // Special handling for Enter key
+            if (data === '\r') {
+                console.log('[Terminal] Enter key pressed');
+            }
+
+            try {
+                HandleInput(id, btoa(data));
+            } catch (error) {
+                console.error('[Terminal] Error handling input:', error);
             }
         });
 
-        // Handle terminal resize
-        terminal.onResize(({ cols, rows }) => {
-            if (!isDestroyed) {
-                console.log('[Terminal] Terminal resize:', { cols, rows });
-                ResizeTerminal(id, cols, rows);
-            }
-        });
-
-        terminal.open(terminalElement);
-        console.log('[Terminal] Terminal opened');
-
+        // Create backend terminal
+        console.log('[Terminal] Creating backend terminal');
         try {
-            console.log('[Terminal] Creating backend terminal');
-            // Create terminal on backend
             await CreateTerminal(id, shell);
             console.log('[Terminal] Backend terminal created');
-
-            // Initial size update
-            await updateTerminalSize();
 
             // Subscribe to terminal events
             console.log('[Terminal] Subscribing to events');
             EventsOn(`terminal:${id}`, handleTerminalEvent);
-        } catch (error) {
-            console.error('[Terminal] Error initializing:', error);
-            terminal.write('Error initializing terminal\r\n');
-        }
 
-        // Listen for window resize
-        window.addEventListener('resize', updateTerminalSize);
+            // Initial resize
+            updateTerminalSize();
+            isInitialized = true;
+        } catch (error) {
+            console.error('[Terminal] Error creating terminal:', error);
+            isDestroyed = true;
+        }
+    }
+
+    onMount(() => {
+        initializeTerminal();
     });
 
-    onDestroy(async () => {
-        console.log('[Terminal] Destroying terminal');
-        isDestroyed = true;
-        window.removeEventListener('resize', updateTerminalSize);
-        
-        // Unsubscribe from terminal events
-        EventsOff(`terminal:${id}`);
-
-        if (terminal) {
-            try {
-                // Destroy terminal on backend
-                await DestroyTerminal(id);
+    onDestroy(() => {
+        if (!isDestroyed) {
+            console.log('[Terminal] Destroying terminal');
+            EventsOff(`terminal:${id}`);
+            DestroyTerminal(id).catch(error => {
+                console.error('[Terminal] Error destroying terminal:', error);
+            });
+            if (terminal) {
                 terminal.dispose();
-                console.log('[Terminal] Terminal destroyed');
-            } catch (error) {
-                console.error('[Terminal] Error disposing:', error);
+                terminal = null;
             }
-            terminal = null;
+            isDestroyed = true;
         }
     });
 </script>
@@ -185,5 +177,5 @@
 <div 
     class={`h-full w-full p-2`}
     style={`background-color: ${terminalTheme.background};`}
-    bind:this={terminalElement} 
+    bind:this={terminalElement}
 />
