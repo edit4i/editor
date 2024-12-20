@@ -14,8 +14,16 @@ export function CreateFile(arg1) {
   return window['go']['main']['App']['CreateFile'](arg1);
 }
 
+export function CreateTerminal(arg1, arg2) {
+  return window['go']['main']['App']['CreateTerminal'](arg1, arg2);
+}
+
 export function DeleteFile(arg1) {
   return window['go']['main']['App']['DeleteFile'](arg1);
+}
+
+export function DestroyTerminal(arg1) {
+  return window['go']['main']['App']['DestroyTerminal'](arg1);
 }
 
 export function GetEditorConfig() {
@@ -38,6 +46,10 @@ export function Greet(arg1) {
   return window['go']['main']['App']['Greet'](arg1);
 }
 
+export function HandleInput(arg1, arg2) {
+  return window['go']['main']['App']['HandleInput'](arg1, arg2);
+}
+
 export function LoadDirectoryContents(arg1) {
   return window['go']['main']['App']['LoadDirectoryContents'](arg1);
 }
@@ -52,6 +64,10 @@ export function OpenProjectFolder() {
 
 export function RenameFile(arg1, arg2) {
   return window['go']['main']['App']['RenameFile'](arg1, arg2);
+}
+
+export function ResizeTerminal(arg1, arg2, arg3) {
+  return window['go']['main']['App']['ResizeTerminal'](arg1, arg2, arg3);
 }
 
 export function SaveFile(arg1, arg2) {

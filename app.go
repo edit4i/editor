@@ -7,15 +7,17 @@ import (
 
 	"github.com/edit4i/editor/internal/db"
 	"github.com/edit4i/editor/internal/service"
+	"github.com/edit4i/editor/internal/terminal"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 // App struct
 type App struct {
-	ctx      context.Context
-	projects *service.ProjectsService
-	files    *service.FileService
-	config   *service.ConfigService
+	ctx             context.Context
+	projects        *service.ProjectsService
+	files           *service.FileService
+	config          *service.ConfigService
+	terminalService *service.TerminalService
 }
 
 // NewApp creates a new App application struct
@@ -43,6 +45,12 @@ func (a *App) startup(ctx context.Context) {
 		panic(fmt.Errorf("Failed to initialize ConfigService: %v", err))
 	}
 	a.config = config
+
+	// Initialize terminal service with event handler
+	a.terminalService = service.NewTerminalService(func(id string, event *terminal.Event) {
+		// Emit terminal events to frontend
+		runtime.EventsEmit(a.ctx, fmt.Sprintf("terminal:%s", id), event)
+	})
 }
 
 // GetRecentProjects returns the list of recent projects
@@ -138,4 +146,24 @@ func (a *App) RenameFile(oldPath, newPath string) error {
 // DeleteFile deletes a file or directory
 func (a *App) DeleteFile(path string) error {
 	return a.files.DeleteFile(path)
+}
+
+// CreateTerminal creates a new terminal instance
+func (a *App) CreateTerminal(id string, shell string) error {
+	return a.terminalService.CreateTerminal(id, shell)
+}
+
+// DestroyTerminal destroys a terminal instance
+func (a *App) DestroyTerminal(id string) error {
+	return a.terminalService.DestroyTerminal(id)
+}
+
+// ResizeTerminal resizes a terminal instance
+func (a *App) ResizeTerminal(id string, cols int, rows int) error {
+	return a.terminalService.ResizeTerminal(id, cols, rows)
+}
+
+// HandleInput handles terminal input from the frontend
+func (a *App) HandleInput(id string, data []byte) error {
+	return a.terminalService.HandleInput(id, data)
 }

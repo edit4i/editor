@@ -9,7 +9,11 @@ export function CreateDirectory(arg1:string):Promise<void>;
 
 export function CreateFile(arg1:string):Promise<void>;
 
+export function CreateTerminal(arg1:string,arg2:string):Promise<void>;
+
 export function DeleteFile(arg1:string):Promise<void>;
+
+export function DestroyTerminal(arg1:string):Promise<void>;
 
 export function GetEditorConfig():Promise<service.EditorConfig>;
 
@@ -21,6 +25,8 @@ export function GetRecentProjects():Promise<Array<db.Project>>;
 
 export function Greet(arg1:string):Promise<string>;
 
+export function HandleInput(arg1:string,arg2:Array<number>):Promise<void>;
+
 export function LoadDirectoryContents(arg1:string):Promise<service.FileNode>;
 
 export function OpenConfigFile():Promise<string>;
@@ -28,6 +34,8 @@ export function OpenConfigFile():Promise<string>;
 export function OpenProjectFolder():Promise<string>;
 
 export function RenameFile(arg1:string,arg2:string):Promise<void>;
+
+export function ResizeTerminal(arg1:string,arg2:number,arg3:number):Promise<void>;
 
 export function SaveFile(arg1:string,arg2:string):Promise<void>;
 

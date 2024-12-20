@@ -70,6 +70,14 @@ func (s *TerminalService) DestroyTerminal(id string) error {
 
 	term.Stop()
 	delete(s.terminals, id)
+
+	// Notify that terminal has exited
+	if s.onEvent != nil {
+		s.onEvent(id, &terminal.Event{
+			Type: terminal.EventExit,
+		})
+	}
+
 	return nil
 }
 
