@@ -21,6 +21,7 @@
     "vite": "^4.4.0"
   },
   "dependencies": {
+    "@xterm/xterm": "^5.5.0",
     "lucide-svelte": "^0.294.0",
     "monaco-editor": "^0.52.0",
     "monaco-vim": "^0.4.1",

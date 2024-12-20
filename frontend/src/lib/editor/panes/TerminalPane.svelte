@@ -1,9 +1,11 @@
 <script lang="ts">
+    import XtermComponent from '@/lib/terminal/XtermComponent.svelte';
+
     // Terminal component to be used inside BottomPane
+    // Get the height from BottomPane
+    export let height: number;
 </script>
 
-<div class="p-2">
-    <div class="font-mono text-sm">
-        <p class="text-gray-500">$ </p>
-    </div>
+<div class="h-full w-full bg-gray-800 overflow-hidden">
+    <XtermComponent {height} />
 </div>

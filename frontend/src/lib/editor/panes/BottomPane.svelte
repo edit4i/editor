@@ -35,7 +35,7 @@
 
     <div class="flex-1 overflow-auto">
         {#if state.activeSection === 'terminal'}
-            <TerminalPane />
+            <TerminalPane {height} />
         {:else if state.activeSection === 'problems'}
             <div class="p-2">
                 <!-- Problems content will go here -->
