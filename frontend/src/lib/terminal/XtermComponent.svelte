@@ -138,8 +138,8 @@
         });
 
         terminal.attachCustomKeyEventHandler((event: KeyboardEvent) => {
-            // Don't handle Alt+J
-            if (event.altKey && event.key.toLowerCase() === 'j') {
+            // Don't handle Ctrl+Alt+J
+            if (event.ctrlKey && event.altKey && event.key.toLowerCase() === 'j') {
                 return false;
             }
             return true;

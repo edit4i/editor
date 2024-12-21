@@ -371,7 +371,7 @@ const defaultKeybindings: KeyBindingConfig = {
     'terminal.returnToPrevious': {
         defaultBinding: {
             key: 'j',
-            modifiers: ['alt'],
+            modifiers: ['ctrl', 'alt'],
             description: 'Return to Previous Pane',
             category: 'Terminal',
             context: ['bottomPane']
